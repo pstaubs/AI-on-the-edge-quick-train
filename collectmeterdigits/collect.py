@@ -17,7 +17,6 @@ import numpy as np
 target_path = "./data"                   # root data path
 target_raw_path =  "./data/raw_images"   # here all raw images will be stored
 target_label_path = "./data/labeled"
-target_store_dublicates = "./data/raw_images/dublicates"
 
 
 def yesterday(daysbefore=1):
@@ -132,9 +131,8 @@ def ziffer_data_files(input_dir):
                 imgfiles.append(root + "/" + file)
     return  imgfiles
 
-def remove_similar_images(image_filenames, meter, hashfunc = imagehash.average_hash, savedublicates=False):
-    '''removes similar images. 
-    
+def remove_similar_images(image_filenames, meter, hashfunc=imagehash.average_hash, saveDublicatesPath=''):
+    '''removes similar images.
     '''
     images = []
     count = 0
@@ -185,11 +183,11 @@ def remove_similar_images(image_filenames, meter, hashfunc = imagehash.average_h
     save_hash_file(HistoricHashData, './data/HistoricHashData.txt')
             
     # remove now all duplicates
-    if savedublicates:
-        print(f"{len(duplicates)} duplicates will moved to .data/raw_images/dublicates.")
-        os.makedirs(target_store_dublicates, exist_ok=True)
+    if saveDublicatesPath!='':
+        print(f"{len(duplicates)} duplicates will moved to "+saveDublicatesPath)
+        os.makedirs(saveDublicatesPath, exist_ok=True)
         for image in duplicates:
-            os.replace(image, os.path.join(target_store_dublicates, os.path.basename(image)))
+            os.replace(image, os.path.join(saveDublicatesPath, os.path.basename(image)))
     else:
         print(f"{len(duplicates)} duplicates will be removed.")
         for image in duplicates:
@@ -204,7 +202,7 @@ def move_to_label(files, meter):
        
 
 
-def collect(meter, days, keepolddata=False, download=True, startlabel=0, savedublicates=False):
+def collect(meter, days, keepolddata=False, download=True, startlabel=0, **kwargs):
     # ensure the target path exists
     os.makedirs(target_raw_path, exist_ok=True)
     print("Startlabel", startlabel)
@@ -214,7 +212,7 @@ def collect(meter, days, keepolddata=False, download=True, startlabel=0, savedub
         readimages(meter, target_raw_path, days)
     
     # remove all same or similar images and remove the empty folders
-    remove_similar_images(ziffer_data_files(os.path.join(target_raw_path, meter)), meter, savedublicates=savedublicates)
+    remove_similar_images(ziffer_data_files(os.path.join(target_raw_path, meter)), meter, **kwargs)
 
     # move the files in one zip without directory structure
     move_to_label(ziffer_data_files(os.path.join(target_raw_path, meter)), meter)

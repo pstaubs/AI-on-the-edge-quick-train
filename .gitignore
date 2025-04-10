@@ -1,2 +1,5 @@
 .ipynb_checkpoints
 html_output/*.jpg
+*.pyc
+data/HistoricHashData.txt
+*.tflite
