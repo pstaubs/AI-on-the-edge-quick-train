@@ -3,3 +3,7 @@ html_output/*.jpg
 *.pyc
 data/HistoricHashData.txt
 *.tflite
+raw_digits_resized
+raw_digits
+raw_analog_resized
+raw_analog
