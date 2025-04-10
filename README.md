@@ -1,108 +1,51 @@
-# neural-network-digital-counter-readout
+# AI-on-the-edge-quick-train
+
+This is a fork of https://github.com/jomjol/neural-network-autotrain-digital-counter which itself is used to train digital and analog models for https://github.com/jomjol/AI-on-the-edge-device. This fork is essentially a stripped down version focused on getting your very own custom model up and running as fast as possible. This assumes you already have AI-on-the-edge-device up and running, with correct ROIs setup and have used the out-of-the-box AI models at least once.
+
+# Installation
+
+You'll need python, of course, and Jupyter installed.
+
+Download this repository and install all dependancies with
+
+```pip install -r requirements.txt```
+
+# Usage (Not my first AI rodeo)
+
+* Collect and download training images directly from AI-on-the-edge-device
+* Drag and drop the ```.jpg``` files into a corresponding labeled subfolder, e.g. ```/raw_digits/1/``` for all the images containing the digit ```1```
+* Run ```02 - Digital_Image_Preparation.ipynb``` and then ```03 - Train_CNN_Digital-Readout-Small-v3.ipynb```
+* Upload the ```dig-fitted.tflite``` to AI-on-the-edge-device. Tweak as necessary.
+
+# Detailed Usage (I'm new to AI)
+
+## Get ready to train your model
+
+You are probably here because the out-of-the-box AI is underperforming. No problem, we're going to teach it how to recognize your counters specifically. This is especially usefull if your camera or lighting is less than ideal. But to train a computer vision AI, you need to collect some images first! You'll find all the detailed infromation for doing so at https://jomjol.github.io/AI-on-the-edge-device-docs/collect-new-images/. In short:
+
+* On your AI-on-the-edge-device web dashboard, enable "ROI Images Location" etc. for the desired type of AI model under Settings > Configuration > ... ROI Processing
+* Under System > File Server ... you'll find the path to the images selected in the previous step. Download images that represent different examples of the types of recognitions.
+    * A "digits" model recognizes whole digits. A "1" is a "1", a "2" is a "2", etc. So you'll want at least one copy of each digit to teach the AI what each one of your digits looks like, though a few more examples of pictures will help your AI figure things out when inevitably your picture isn't perfect. About 50 images in total is probably all you need, though more can't hurt.
+    * An "analog" model recognizes a dial continously (readings like "7.2..."). This is more advanced AI model that will require more data, I recommend trying to train the digits first, if possible.
+
+## Fix the training data
+
+The downloaded images will need to be relabeled, because the AI didn't do a great job right out of the gate (that's why you are here, no?). File Explorer or some other file manager GUI makes this job simple. Just look at the images and drag and drop the files in the appropriate folder. Ignore the filename, it doesn't matter.
+
+* For a "digits" model, drag all the ```.jpg``` that have the number ```1``` in the picture into ```/raw_digits/1/``` folder, and all those with the number ```2``` in the picture into ```/raw_digits/2/```. Since you are training a custom model, you probably don't have to deal with ```N``` recognitions, since your detections will probably be perfect 99% of the time. Nevertheless, you can attempt to train for N. Place ```.jpg``` files of unrecognizable images into the ```/raw_digits/N/``` folder.
+* For an "analog" model, drag all the ```.jpg``` into at most 2 subdir of digits, so for example the image of a dial measuring 7.2 goes into ```/raw_analog/7/2``` folder. You'll need 10 times as many images for simialr accuracy as digits.
 
 
+## Run the training
 
-Training and using a neural network to readout the value of a digital counter - example including small node server for demonstration
+* Run ```02 - Digital_Image_Preparation.ipynb``` or ```02 - Analog_Image_Preparation.ipynb```, as the case may be. This will copy the images, appropriatly resized and ready for training.
+* Run ```03 - Train_CNN_Digital-Readout-Small-v3.ipynb``` or ```03 - Train_CNN_Analog-Readout_Version-Small2.ipynb```, as the case may be. This will perform the training. Check the results at the bottom. It should look something like this to get good results:
 
-The readout is used in a water meter measurement system. 
+![0b88e420-ad8b-4b51-883b-d2eaf71f943b](https://github.com/user-attachments/assets/768197ca-8af0-4203-897a-219b2b4951e6)
 
-####  18.0.1 New Images (2024-07-21)
+![6f2654b2-55a0-41a7-b47d-9267574d5fa8](https://github.com/user-attachments/assets/36d64369-2ddd-4a27-81f5-5e34ab89d14a)
 
-* New images (LCD)
+## Use the model
 
-####  17.0.1 New Images (2024-03-25)
-
-* New images (LCD)
-
-####  16.0.0 New Images (2023-01-13)
-
-* New images (red on black)
-
-####  15.1.0 New Images (2022-12-11)
-
-* New LCD images (low contrast)
-
-####  15.0.0 New Images (2022-11-20)
-
-* New LCD images
-
-####  14.4.0 Reactivate (2022-11-05)
-
-* New LCD images
-
-####  14.3.0 Reactivate (2022-09-28)
-
-* New LCD images
-
-####  14.1.1 Reactivate (2022-08-13)
-
-* Update to new naming convention (not fully finished)
-* New training data
-
-####  14.0.0 Reactivate (2022-06-30)
-
-* Update to Tensorflow 2.9
-* Accumulated new images
-
-####  <span style="color: red;">13.3.0"Final" version (2021-12-24)</span> 
-
-* The training of the neural network for digital counters is transfered to an fully automated version:
-  https://github.com/jomjol/neural-network-autotrain-digital-counter
-
-
-
-
-#### [Overview older Versions](Versions.md)
-
-## Problem to solve
-
-An image of a number between 0 and 9 should be recognized and converted to the corresponding digital value. One complicating issue is, that as the digits are comming from a rolling counter number, there are some pictures, which are not ambigious. In this case the result should be a "NaN", indicating, that this is not a full number.
-To solve this problem a neural network approach is used.
-
-The rolling counter meter looks like following:
-
-<img src="./images/counter_complete.png" width="250">  
-
-The image is sliced into individual pictures, which are analysed by a neural network.
-
-## Neural Network Approach
-
-Convolutional Neural Networks (CNN) are very promiment in image processing. Especially in classification of image content, e.g. identify objects (dog, cat, car, bike, ...) or classify hand written letters.
-
-Here a classic approach is used to classify the picture into 11 output classes representing the 10 digits from 0 to 9 and the "NaN". 
-
-| Picture        | Value           | Picture        | Value           | Picture        | Value           | Picture        | Value           |
-| ------------- |:-------------:| ------------- |:-------------:|------------- |:-------------:| ------------- |:-------------:|
-| <img src="./images/counter2.jpg" width="60"> | 2 | <img src="./images/counter6.jpg" width="60"> | 6 |<img src="./images/counter9.jpg" width="60"> | 9 | <img src="./images/counterNaN.jpg" width="60"> | NaN |
-
-
-### Labeled Training Data
-
-The images are coming from a camera system described elsewhere ([Overview](https://github.com/jomjol/water-meter-measurement-system), [HW](https://www.thingiverse.com/thing:3238162), [SW](https://github.com/jomjol/water-meter-picture-provider)). One major effort is to label the pictures with the target value. The labeling is done by hand. For each digit about 150 images are collected. For the "NaN" category about 3700 images were taken. The picture are rescaled to 32x20 pixels with RGB color (3 channels).
-
-The resized pictures as well as the original pictures (zipped in file "data_raw_all.zip") are included in the dataset. The pictures are stored in a subfolder for each digit (and NaN).
-
-The criteria for "good" and "bad" images are described here: [Labeling-Criteria.md](Labeling-Criteria.md)
-
-## Training the network
-
-The training is done using Keras in a python environment. For training purpuses the code is documented in Jupyter notebooks. The environment is setup using Ananconda with Python 3.7[1]. 
-
-The training is descibed in detail in an Jyupither Notebook: **[How to Train the Network](Train_Network.md)**.
-
-The trained network is stored in the Keras H5-format and used as an input for a simple usage in the main project for a water meter readout: [https://github.com/jomjol/water-meter-system-complete](https://github.com/jomjol/water-meter-system-complete)
-
-Hopefully you have fun with neural networks and find this useful. 
-
-**Any questions, hints, improvements are very welcome through the GitHub channel**
-
-Best regards,
-
-**jomjol**
-
-
-[1]: The following book is found very useful for background, basic setting and different approaches:  
-Mattheiu Deru and Alassane Ndiaye: Deep Learning with TensorFlow, Keras, und Tensorflow.js
-
-
-
+* Upload the model to the ```/config/``` fir in System > File Server. After upload, the model will be selectable on the configuration page.
+* Watch the performance for a day or two. Download any images that failed to properly detect, and rerun the [Fix the training data] and [Run the training] steps again
