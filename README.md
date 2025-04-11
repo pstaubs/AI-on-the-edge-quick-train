@@ -43,7 +43,8 @@ The downloaded images will need to be relabeled, because the AI didn't do a grea
 
 ![0b88e420-ad8b-4b51-883b-d2eaf71f943b](https://github.com/user-attachments/assets/768197ca-8af0-4203-897a-219b2b4951e6)
 
-![6f2654b2-55a0-41a7-b47d-9267574d5fa8](https://github.com/user-attachments/assets/36d64369-2ddd-4a27-81f5-5e34ab89d14a)
+![71c4f356-5e61-4a57-b9b5-eddfe28dec63](https://github.com/user-attachments/assets/9ca9e47e-cf7c-48d7-9d44-8f7b027d8491)
+
 
 ## Use the model
 
